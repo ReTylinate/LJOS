@@ -1,2 +1,13 @@
-# LuaOS
-Sorry if I copied you but lua is the only language I can do anything in lol. Currently LuaJIT userland, C libraries, but later we will have the libraries made in LuaJIT. First we get it working.
+LuaOS
+
+A LuaJIT-based userland running on Linux.
+
+Current state:
+- boots in QEMU
+- runs LuaJIT as init
+- basic shell works
+
+Goal:
+- full Lua-based userland
+- no external CLI tools
+- graphical environment built on SDL2
