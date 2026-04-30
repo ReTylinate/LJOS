@@ -1,5 +1,3 @@
-LuaOS
-
 A LuaJIT-based userland running on Linux.
 
 Current state:
