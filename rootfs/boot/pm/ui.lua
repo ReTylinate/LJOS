@@ -1,7 +1,7 @@
 -- Terminal UI for ljpm on LJOS
 -- Pure LuaJIT — no FFI, no ncurses.
 -- Color support is detected from TERM env var.
--- Lives at /dev/pm/ui.lua
+-- Lives at /boot/pm/ui.lua
 
 local ui = {}
 
@@ -46,7 +46,7 @@ local _width = nil
 function ui.width()
   if _width then return _width end
   -- Try reading from stty (busybox has stty)
-  local p = io.popen("stty size 2>/dev/null")
+  local p = io.popen("stty size 2>/boot/null")
   if p then
     local out = p:read("*l")
     p:close()

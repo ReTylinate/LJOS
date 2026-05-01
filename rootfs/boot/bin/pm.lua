@@ -1,0 +1,11 @@
+#!/usr/bin/env luajit
+-- ljpm standalone entry point for LJOS
+-- Located at /boot/bin/pm.lua
+-- Can be run directly: luajit /boot/bin/pm.lua install <pkg>
+-- Or via the pm alias registered in the LJOS shell.
+
+-- /boot/ = OS system files.  /packages/ = user-installed packages.
+package.path = "/boot/?.lua;/boot/?/init.lua;/packages/?.lua;/packages/?/init.lua;" .. package.path
+
+local pm = require("system.pm")
+pm.main(arg)

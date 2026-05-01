@@ -1,4 +1,4 @@
-package.path = "/dev/?.lua;/dev/?/init.lua;/packages/?.lua;/packages/?/init.lua;" .. package.path
+package.path = "/boot/?.lua;/boot/?/init.lua;/packages/?.lua;/packages/?/init.lua;" .. package.path
 
 local core = require("system.core")
 
@@ -107,7 +107,7 @@ LJOS Shell Commands:
 
     else
 
-      local bin_path = "/dev/bin/" .. cmd .. ".lua"
+      local bin_path = "/boot/bin/" .. cmd .. ".lua"
       local f = io.open(bin_path, "r")
       if f then
         f:close()

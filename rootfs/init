@@ -1,3 +1,8 @@
 #!/bin/sh
 echo "starting LuaOS"
-exec /bin/luajit /dev/boot.lua
+
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devtmpfs none /dev
+
+exec /bin/luajit /boot/boot.lua

@@ -1,13 +1,13 @@
 -- Configuration for ljpm on LJOS
--- Lives at /dev/pm/config.lua
+-- Lives at /boot/pm/config.lua
 --
 -- LJOS directory layout:
---   /dev/                    OS system files (boot, core, pm source)
---   /dev/system/             OS system modules
---   /dev/pm/                 ljpm source + runtime data
---   /dev/pm/db.json          installed-package database
---   /dev/pm/cache/           downloaded archives + index
---   /dev/pm/config.json      user config (optional)
+--   /boot/                    OS system files (boot, core, pm source)
+--   /boot/system/             OS system modules
+--   /boot/pm/                 ljpm source + runtime data
+--   /boot/pm/db.json          installed-package database
+--   /boot/pm/cache/           downloaded archives + index
+--   /boot/pm/config.json      user config (optional)
 --   /packages/               installed third-party Lua packages
 --   /bin/                    installed package scripts (alongside busybox)
 --   /share/                  installed package data files
@@ -26,16 +26,16 @@ config.DEFAULTS = {
   bin_dir       = "/bin",
   -- Shared data files
   share_dir     = "/share",
-  -- pm internal data (stays under /dev since it's a system component)
-  pm_dir        = "/dev/pm",
+  -- pm internal data (stays under /boot since it's a system component)
+  pm_dir        = "/boot/pm",
   -- Downloaded archives cache
-  cache_dir     = "/dev/pm/cache",
+  cache_dir     = "/boot/pm/cache",
   -- Package database
-  db_file       = "/dev/pm/db.json",
+  db_file       = "/boot/pm/db.json",
   -- User config
-  config_file   = "/dev/pm/config.json",
+  config_file   = "/boot/pm/config.json",
   -- Lock file
-  lock_file     = "/dev/pm/ljpm.lock",
+  lock_file     = "/boot/pm/ljpm.lock",
   -- Registry URL (default: local file during development, real URL in production)
   registry_url  = os.getenv("LJPM_REGISTRY") or "https://registry.ljos.dev",
   -- Log level

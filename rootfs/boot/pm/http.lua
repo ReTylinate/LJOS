@@ -1,7 +1,7 @@
 -- HTTP client for ljpm on LJOS
 -- Uses busybox wget (already in /bin/) for downloads.
 -- Pure-Lua TCP socket (FFI) is used for plain HTTP GETs.
--- Lives at /dev/pm/http.lua
+-- Lives at /boot/pm/http.lua
 --
 -- Strategy:
 --   HTTP  → pure LuaJIT FFI socket (no external tools for simple GETs)

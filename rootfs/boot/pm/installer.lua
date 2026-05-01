@@ -1,5 +1,5 @@
 -- Package installer/uninstaller for ljpm on LJOS
--- Lives at /dev/pm/installer.lua
+-- Lives at /boot/pm/installer.lua
 --
 -- LJOS install layout:
 --   Archive layout (inside .tar.gz):
@@ -14,8 +14,8 @@
 --     /bin/<name>.lua        -- executable scripts (alongside busybox)
 --     /share/<name>/         -- data files
 --
--- Package archives are cached at /dev/pm/cache/archives/
--- PM runtime data stays under /dev/pm/ (it's a system component)
+-- Package archives are cached at /boot/pm/cache/archives/
+-- PM runtime data stays under /boot/pm/ (it's a system component)
 
 local json     = require("pm.json")
 local fs       = require("pm.fs")
@@ -33,10 +33,10 @@ local function extract_archive(archive_path, dest_dir)
 
   local cmd
   if archive_path:match("%.tar%.gz$") or archive_path:match("%.tgz$") then
-    cmd = string.format("tar -xzf %s -C %s 2>/dev/null",
+    cmd = string.format("tar -xzf %s -C %s 2>/boot/null",
       fs.quote(archive_path), fs.quote(dest_dir))
   elseif archive_path:match("%.tar$") then
-    cmd = string.format("tar -xf %s -C %s 2>/dev/null",
+    cmd = string.format("tar -xf %s -C %s 2>/boot/null",
       fs.quote(archive_path), fs.quote(dest_dir))
   else
     return false, "Unknown archive format: "..archive_path
@@ -69,7 +69,7 @@ function installer.install(manifest, cfg, db, opts)
     packages_dir  = (cfg and cfg.packages_dir) or "/packages",
     bin_dir       = (cfg and cfg.bin_dir)       or "/bin",
     share_dir     = (cfg and cfg.share_dir)     or "/share",
-    cache_dir     = (cfg and cfg.cache_dir)     or "/dev/pm/cache",
+    cache_dir     = (cfg and cfg.cache_dir)     or "/boot/pm/cache",
   }
 
   ui.info(string.format("Installing %s (%s)...", name, version))
@@ -129,7 +129,7 @@ function installer.install(manifest, cfg, db, opts)
   local pkg_dest
 
   if install_to == "system" then
-    pkg_dest = "/dev/system/" .. name
+    pkg_dest = "/boot/system/" .. name
   else
     pkg_dest = paths.packages_dir .. "/" .. name
   end
@@ -158,13 +158,13 @@ function installer.install(manifest, cfg, db, opts)
               local bsrc  = src .. "/" .. bname
               local bdst  = paths.bin_dir .. "/" .. bname
               fs.copy(bsrc, bdst)
-              os.execute("chmod +x "..fs.quote(bdst).." 2>/dev/null")
+              os.execute("chmod +x "..fs.quote(bdst).." 2>/boot/null")
               installed_files[#installed_files+1] = bdst
             end
           end
         end
       elseif entry == "share" then
-        -- Data → /dev/share/<name>/
+        -- Data → /boot/share/<name>/
         if fs.isdir(src) then
           local sdst = paths.share_dir .. "/" .. name
           fs.copydir(src, sdst)
@@ -240,14 +240,14 @@ function installer.remove(name, db, cfg, opts)
     packages_dir  = (cfg and cfg.packages_dir) or "/packages",
     bin_dir       = (cfg and cfg.bin_dir)       or "/bin",
     share_dir     = (cfg and cfg.share_dir)     or "/share",
-    cache_dir     = (cfg and cfg.cache_dir)     or "/dev/pm/cache",
+    cache_dir     = (cfg and cfg.cache_dir)     or "/boot/pm/cache",
   }
 
   -- Run pre-remove script
   if info.scripts and info.scripts.preremove then
     local install_to = info.install_to or "packages"
     local pkg_dir = (install_to == "system")
-      and "/dev/system/"..name   -- system packages stay under /dev
+      and "/boot/system/"..name   -- system packages stay under /boot
       or  paths.packages_dir.."/"..name
 
     local script = pkg_dir .. "/" .. info.scripts.preremove
@@ -270,7 +270,7 @@ function installer.remove(name, db, cfg, opts)
     -- Fallback: remove package directory
     local install_to = info.install_to or "packages"
     local pkg_dir = (install_to == "system")
-      and "/dev/system/"..name   -- system packages stay under /dev
+      and "/boot/system/"..name   -- system packages stay under /boot
       or  paths.packages_dir.."/"..name
     if fs.isdir(pkg_dir) then fs.rmrf(pkg_dir) end
   end

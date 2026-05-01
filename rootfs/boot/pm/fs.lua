@@ -1,6 +1,6 @@
 -- Filesystem utilities for ljpm on LJOS
 -- Uses io.* for file I/O and busybox (os.execute) for directory ops.
--- Lives at /dev/pm/fs.lua
+-- Lives at /boot/pm/fs.lua
 --
 -- NOTE: Pure-FFI variants are possible and planned for when LJOS eliminates
 -- busybox. For now, busybox is in /bin/ so os.execute is acceptable.
@@ -41,61 +41,61 @@ end
 -- ─── Existence & Type Checks (via busybox test) ──────────────────────────────
 
 function fs.exists(path)
-  return os.execute("test -e "..fs.quote(path).." 2>/dev/null") == 0
+  return os.execute("test -e "..fs.quote(path).." 2>/boot/null") == 0
 end
 
 function fs.isfile(path)
-  return os.execute("test -f "..fs.quote(path).." 2>/dev/null") == 0
+  return os.execute("test -f "..fs.quote(path).." 2>/boot/null") == 0
 end
 
 function fs.isdir(path)
-  return os.execute("test -d "..fs.quote(path).." 2>/dev/null") == 0
+  return os.execute("test -d "..fs.quote(path).." 2>/boot/null") == 0
 end
 
 -- ─── Directory Operations ─────────────────────────────────────────────────────
 
 function fs.mkdir(path, recursive)
   if recursive then
-    return os.execute("mkdir -p "..fs.quote(path).." 2>/dev/null") == 0
+    return os.execute("mkdir -p "..fs.quote(path).." 2>/boot/null") == 0
   else
-    return os.execute("mkdir "..fs.quote(path).." 2>/dev/null") == 0
+    return os.execute("mkdir "..fs.quote(path).." 2>/boot/null") == 0
   end
 end
 
 function fs.rmdir(path)
-  return os.execute("rmdir "..fs.quote(path).." 2>/dev/null") == 0
+  return os.execute("rmdir "..fs.quote(path).." 2>/boot/null") == 0
 end
 
 function fs.remove(path)
-  return os.execute("rm -f "..fs.quote(path).." 2>/dev/null") == 0
+  return os.execute("rm -f "..fs.quote(path).." 2>/boot/null") == 0
 end
 
 function fs.rmrf(path)
   if not path or path == "" or path == "/" then
     return false, "Refusing to rm -rf empty or root path"
   end
-  return os.execute("rm -rf "..fs.quote(path).." 2>/dev/null") == 0
+  return os.execute("rm -rf "..fs.quote(path).." 2>/boot/null") == 0
 end
 
 function fs.rename(old, new)
-  return os.execute("mv "..fs.quote(old).." "..fs.quote(new).." 2>/dev/null") == 0
+  return os.execute("mv "..fs.quote(old).." "..fs.quote(new).." 2>/boot/null") == 0
 end
 
 function fs.copy(src, dst)
   local dir = fs.dirname(dst)
   if dir and dir ~= "" then fs.mkdir(dir, true) end
-  return os.execute("cp "..fs.quote(src).." "..fs.quote(dst).." 2>/dev/null") == 0
+  return os.execute("cp "..fs.quote(src).." "..fs.quote(dst).." 2>/boot/null") == 0
 end
 
 function fs.copydir(src, dst)
   fs.mkdir(dst, true)
-  return os.execute("cp -r "..fs.quote(src).."/. "..fs.quote(dst).."/ 2>/dev/null") == 0
+  return os.execute("cp -r "..fs.quote(src).."/. "..fs.quote(dst).."/ 2>/boot/null") == 0
 end
 
 -- ─── Directory Listing ───────────────────────────────────────────────────────
 
 function fs.listdir(path)
-  local p = io.popen("ls -1a "..fs.quote(path).." 2>/dev/null")
+  local p = io.popen("ls -1a "..fs.quote(path).." 2>/boot/null")
   if not p then return nil, "Cannot list directory: "..path end
   local entries = {}
   for line in p:lines() do
@@ -111,7 +111,7 @@ end
 -- ─── Symlinks ────────────────────────────────────────────────────────────────
 
 function fs.symlink(target, linkpath)
-  return os.execute("ln -sf "..fs.quote(target).." "..fs.quote(linkpath).." 2>/dev/null") == 0
+  return os.execute("ln -sf "..fs.quote(target).." "..fs.quote(linkpath).." 2>/boot/null") == 0
 end
 
 -- ─── Path Helpers ────────────────────────────────────────────────────────────
@@ -153,7 +153,7 @@ end
 -- ─── Size ────────────────────────────────────────────────────────────────────
 
 function fs.size(path)
-  local p = io.popen("wc -c < "..fs.quote(path).." 2>/dev/null")
+  local p = io.popen("wc -c < "..fs.quote(path).." 2>/boot/null")
   if not p then return nil end
   local n = p:read("*n")
   p:close()
@@ -163,7 +163,7 @@ end
 -- ─── Checksum ────────────────────────────────────────────────────────────────
 
 function fs.sha256(path)
-  local p = io.popen("sha256sum "..fs.quote(path).." 2>/dev/null")
+  local p = io.popen("sha256sum "..fs.quote(path).." 2>/boot/null")
   if not p then return nil end
   local line = p:read("*l")
   p:close()

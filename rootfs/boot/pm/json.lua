@@ -1,5 +1,5 @@
 -- Pure LuaJIT JSON encoder/decoder — no FFI, no C libs
--- Used by ljpm. Lives at /dev/pm/json.lua in LJOS.
+-- Used by ljpm. Lives at /boot/pm/json.lua in LJOS.
 
 local json = {}
 
