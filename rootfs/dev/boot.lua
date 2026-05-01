@@ -1,8 +1,9 @@
-package.path = "/lua/?.lua;/lua/?/init.lua;" .. package.path
+package.path = "/dev/?.lua;/dev/?/init.lua;/packages/?.lua;/packages/?/init.lua;" .. package.path
 
 local core = require("system.core")
 
 print("[LuaOS] booting")
+print("[LuaOS] ljpm package manager available — type 'pm help'")
 
 local _pm_loaded = false
 local function get_pm()
@@ -17,7 +18,6 @@ local function get_pm()
   return _pm_loaded
 end
 
-local function extended_shell()
   print("[LuaOS] shell ready")
 
   local cwd = "/"
@@ -52,7 +52,7 @@ local function extended_shell()
 
     elseif cmd == "cd" then
       cwd = resolve(words[2] or "/")
-      core.cd(words[2] or "/")  -- keep core in sync
+      core.cd(words[2] or "/")
 
     elseif cmd == "ls"    then core.ls(resolve(words[2]))
     elseif cmd == "pwd"   then print(cwd)
@@ -70,6 +70,7 @@ local function extended_shell()
       core.write(resolve(words[2]), table.concat(parts, " "))
 
     elseif cmd == "luajit" or cmd == "lua" then
+
       if words[2] then
         local path = resolve(words[2])
         local exec_args = {}
@@ -105,8 +106,8 @@ LJOS Shell Commands:
 ]])
 
     else
-      -- Try executing as a script in /lua/bin/
-      local bin_path = "/lua/bin/" .. cmd .. ".lua"
+
+      local bin_path = "/dev/bin/" .. cmd .. ".lua"
       local f = io.open(bin_path, "r")
       if f then
         f:close()

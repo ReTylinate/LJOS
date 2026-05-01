@@ -1,5 +1,5 @@
 -- Pure LuaJIT semantic versioning for ljpm on LJOS
--- Lives at /lua/pm/version.lua
+-- Lives at /dev/pm/version.lua
 -- No FFI, no C — pure Lua string/number operations.
 
 local M = {}

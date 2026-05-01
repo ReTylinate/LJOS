@@ -1,5 +1,5 @@
 -- Package installer/uninstaller for ljpm on LJOS
--- Lives at /lua/pm/installer.lua
+-- Lives at /dev/pm/installer.lua
 --
 -- LJOS install layout:
 --   Archive layout (inside .tar.gz):
@@ -10,11 +10,12 @@
 --     share/<name>/          -- data files (optional)
 --
 --   Installed to:
---     /lua/packages/<name>/  -- Lua module files (require("packages.<name>"))
---     /lua/bin/<name>.lua    -- executable scripts
---     /lua/share/<name>/     -- data files
+--     /packages/<name>/      -- Lua module files (require("packages.<name>"))
+--     /bin/<name>.lua        -- executable scripts (alongside busybox)
+--     /share/<name>/         -- data files
 --
--- Package archives are cached at /lua/pm/cache/archives/
+-- Package archives are cached at /dev/pm/cache/archives/
+-- PM runtime data stays under /dev/pm/ (it's a system component)
 
 local json     = require("pm.json")
 local fs       = require("pm.fs")
@@ -65,10 +66,10 @@ function installer.install(manifest, cfg, db, opts)
   local name    = manifest.name
   local version = manifest.version
   local paths   = {
-    packages_dir  = (cfg and cfg.packages_dir) or "/lua/packages",
-    bin_dir       = (cfg and cfg.bin_dir)       or "/lua/bin",
-    share_dir     = (cfg and cfg.share_dir)     or "/lua/share",
-    cache_dir     = (cfg and cfg.cache_dir)     or "/lua/pm/cache",
+    packages_dir  = (cfg and cfg.packages_dir) or "/packages",
+    bin_dir       = (cfg and cfg.bin_dir)       or "/bin",
+    share_dir     = (cfg and cfg.share_dir)     or "/share",
+    cache_dir     = (cfg and cfg.cache_dir)     or "/dev/pm/cache",
   }
 
   ui.info(string.format("Installing %s (%s)...", name, version))
@@ -128,7 +129,7 @@ function installer.install(manifest, cfg, db, opts)
   local pkg_dest
 
   if install_to == "system" then
-    pkg_dest = "/lua/system/" .. name
+    pkg_dest = "/dev/system/" .. name
   else
     pkg_dest = paths.packages_dir .. "/" .. name
   end
@@ -139,7 +140,7 @@ function installer.install(manifest, cfg, db, opts)
     fs.rmrf(pkg_dest)
   end
 
-  -- Place Lua files → /lua/packages/<name>/
+  -- Place Lua files → /packages/<name>/
   fs.mkdir(pkg_dest, true)
   local installed_files = {}
 
@@ -149,7 +150,7 @@ function installer.install(manifest, cfg, db, opts)
     for _, entry in ipairs(entries) do
       local src = content_root .. "/" .. entry
       if entry == "bin" then
-        -- Executables → /lua/bin/
+        -- Executables → /bin/
         if fs.isdir(src) then
           local bins = fs.listdir(src)
           if bins then
@@ -163,7 +164,7 @@ function installer.install(manifest, cfg, db, opts)
           end
         end
       elseif entry == "share" then
-        -- Data → /lua/share/<name>/
+        -- Data → /dev/share/<name>/
         if fs.isdir(src) then
           local sdst = paths.share_dir .. "/" .. name
           fs.copydir(src, sdst)
@@ -172,7 +173,7 @@ function installer.install(manifest, cfg, db, opts)
       elseif entry == "package.json" then
         -- Skip — don't install the manifest itself as a module file
       else
-        -- Lua modules → /lua/packages/<name>/
+        -- Lua modules → /packages/<name>/
         local dst = pkg_dest .. "/" .. entry
         if fs.isdir(src) then
           fs.copydir(src, dst)
@@ -236,17 +237,17 @@ function installer.remove(name, db, cfg, opts)
   ui.info(string.format("Removing %s (%s)...", name, info.version))
 
   local paths = {
-    packages_dir  = (cfg and cfg.packages_dir) or "/lua/packages",
-    bin_dir       = (cfg and cfg.bin_dir)       or "/lua/bin",
-    share_dir     = (cfg and cfg.share_dir)     or "/lua/share",
-    cache_dir     = (cfg and cfg.cache_dir)     or "/lua/pm/cache",
+    packages_dir  = (cfg and cfg.packages_dir) or "/packages",
+    bin_dir       = (cfg and cfg.bin_dir)       or "/bin",
+    share_dir     = (cfg and cfg.share_dir)     or "/share",
+    cache_dir     = (cfg and cfg.cache_dir)     or "/dev/pm/cache",
   }
 
   -- Run pre-remove script
   if info.scripts and info.scripts.preremove then
     local install_to = info.install_to or "packages"
     local pkg_dir = (install_to == "system")
-      and "/lua/system/"..name
+      and "/dev/system/"..name   -- system packages stay under /dev
       or  paths.packages_dir.."/"..name
 
     local script = pkg_dir .. "/" .. info.scripts.preremove
@@ -269,7 +270,7 @@ function installer.remove(name, db, cfg, opts)
     -- Fallback: remove package directory
     local install_to = info.install_to or "packages"
     local pkg_dir = (install_to == "system")
-      and "/lua/system/"..name
+      and "/dev/system/"..name   -- system packages stay under /dev
       or  paths.packages_dir.."/"..name
     if fs.isdir(pkg_dir) then fs.rmrf(pkg_dir) end
   end

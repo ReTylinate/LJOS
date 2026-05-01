@@ -13,10 +13,10 @@ mypackage-1.0.0.tar.gz
     ├── submodule/
     │   └── init.lua
     ├── bin/
-    │   └── mytool.lua         installed to /lua/bin/mytool.lua
+    │   └── mytool.lua         installed to /dev/bin/mytool.lua
     └── share/
         └── mypackage/
-            └── data.json      installed to /lua/share/mypackage/data.json
+            └── data.json      installed to /dev/share/mypackage/data.json
 ```
 
 ## Manifest (`package.json`)
@@ -54,12 +54,13 @@ mypackage-1.0.0.tar.gz
 
 ### `install_to` values
 
-| Value      | Installed to            | `require()` path               |
-|------------|-------------------------|--------------------------------|
-| `packages` | `/lua/packages/<name>/` | `require("packages.<name>")`   |
-| `system`   | `/lua/system/<name>/`   | `require("system.<name>")`     |
+| Value      | Installed to         | `require()` path             |
+|------------|----------------------|------------------------------|
+| `packages` | `/packages/<name>/`  | `require("packages.<name>")` |
+| `system`   | `/dev/system/<name>/`| `require("system.<name>")`   |
 
-Scripts in `bin/` always go to `/lua/bin/` regardless of `install_to`.
+Scripts in `bin/` always go to `/bin/` (alongside busybox) regardless of `install_to`.
+Data in `share/` always goes to `/share/<name>/`.
 
 ## Version Constraints
 
@@ -96,5 +97,6 @@ After `pm install mypackage`, use it in LJOS:
 local mp = require("packages.mypackage")
 ```
 
-The LJOS `package.path` already includes `/lua/?.lua` and `/lua/?/init.lua`,
-so `/lua/packages/mypackage/init.lua` is found automatically.
+LJOS `boot.lua` sets `package.path` to include both `/dev/` (system files)
+and `/packages/` (installed packages), so `/packages/mypackage/init.lua`
+is found automatically without any extra setup.

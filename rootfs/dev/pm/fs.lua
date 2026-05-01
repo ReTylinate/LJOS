@@ -1,6 +1,6 @@
 -- Filesystem utilities for ljpm on LJOS
 -- Uses io.* for file I/O and busybox (os.execute) for directory ops.
--- Lives at /lua/pm/fs.lua
+-- Lives at /dev/pm/fs.lua
 --
 -- NOTE: Pure-FFI variants are possible and planned for when LJOS eliminates
 -- busybox. For now, busybox is in /bin/ so os.execute is acceptable.

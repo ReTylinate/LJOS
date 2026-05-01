@@ -1,5 +1,5 @@
 -- Dependency resolver for ljpm on LJOS
--- Lives at /lua/pm/resolver.lua
+-- Lives at /dev/pm/resolver.lua
 -- Pure LuaJIT, no FFI — just table operations and version comparisons.
 
 local ver = require("pm.version")

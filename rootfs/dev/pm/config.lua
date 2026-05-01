@@ -1,14 +1,16 @@
 -- Configuration for ljpm on LJOS
--- Lives at /lua/pm/config.lua
+-- Lives at /dev/pm/config.lua
 --
 -- LJOS directory layout:
---   /lua/                    package.path root
---   /lua/system/             OS system modules
---   /lua/packages/           installed third-party packages
---   /lua/pm/                 ljpm itself
---   /lua/pm/db.json          installed-package database
---   /lua/pm/cache/           downloaded archives
---   /lua/pm/config.json      user config (optional)
+--   /dev/                    OS system files (boot, core, pm source)
+--   /dev/system/             OS system modules
+--   /dev/pm/                 ljpm source + runtime data
+--   /dev/pm/db.json          installed-package database
+--   /dev/pm/cache/           downloaded archives + index
+--   /dev/pm/config.json      user config (optional)
+--   /packages/               installed third-party Lua packages
+--   /bin/                    installed package scripts (alongside busybox)
+--   /share/                  installed package data files
 
 local json = require("pm.json")
 local fs   = require("pm.fs")
@@ -18,22 +20,22 @@ local config = {}
 -- ─── Defaults ────────────────────────────────────────────────────────────────
 
 config.DEFAULTS = {
-  -- Where packages are installed
-  packages_dir  = "/lua/packages",
-  -- Where package executables (lua scripts) go
-  bin_dir       = "/lua/bin",
-  -- Shared data
-  share_dir     = "/lua/share",
-  -- pm internal data
-  pm_dir        = "/lua/pm",
+  -- Where third-party packages are installed
+  packages_dir  = "/packages",
+  -- Where package scripts go (alongside busybox)
+  bin_dir       = "/bin",
+  -- Shared data files
+  share_dir     = "/share",
+  -- pm internal data (stays under /dev since it's a system component)
+  pm_dir        = "/dev/pm",
   -- Downloaded archives cache
-  cache_dir     = "/lua/pm/cache",
+  cache_dir     = "/dev/pm/cache",
   -- Package database
-  db_file       = "/lua/pm/db.json",
+  db_file       = "/dev/pm/db.json",
   -- User config
-  config_file   = "/lua/pm/config.json",
+  config_file   = "/dev/pm/config.json",
   -- Lock file
-  lock_file     = "/lua/pm/ljpm.lock",
+  lock_file     = "/dev/pm/ljpm.lock",
   -- Registry URL (default: local file during development, real URL in production)
   registry_url  = os.getenv("LJPM_REGISTRY") or "https://registry.ljos.dev",
   -- Log level

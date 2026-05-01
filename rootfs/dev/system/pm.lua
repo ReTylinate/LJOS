@@ -1,5 +1,5 @@
 -- ljpm — LuaJIT Package Manager for LJOS
--- Lives at /lua/system/pm.lua
+-- Lives at /dev/system/pm.lua
 --
 -- Usage from LJOS shell:
 --   pm install <pkg>
@@ -18,11 +18,11 @@
 --   local pm = require("system.pm")
 --   pm.register_shell(core)   -- adds "pm" command to core.shell dispatch
 --
--- Or run standalone (used when invoked as /lua/bin/pm.lua):
+-- Or run standalone (used when invoked as /dev/bin/pm.lua):
 --   pm.main(arg)
 
 -- Set up module search path so pm.* modules are findable
-package.path = "/lua/?.lua;/lua/?/init.lua;" .. package.path
+package.path = "/dev/?.lua;/dev/?/init.lua;" .. package.path
 
 local ui       = require("pm.ui")
 local fs       = require("pm.fs")
@@ -586,7 +586,7 @@ commands.cache = function(args, opts)
   table.remove(args, 1)
 
   if subcmd == "clean" then
-    local archive_dir = (cfg.cache_dir or "/lua/pm/cache") .. "/archives"
+    local archive_dir = (cfg.cache_dir or "/dev/pm/cache") .. "/archives"
     local entries = fs.listdir(archive_dir) or {}
     local count, freed = 0, 0
     for _, name in ipairs(entries) do
@@ -602,7 +602,7 @@ commands.cache = function(args, opts)
     end
 
   elseif subcmd == "stats" then
-    local cache_dir   = cfg.cache_dir or "/lua/pm/cache"
+    local cache_dir   = cfg.cache_dir or "/dev/pm/cache"
     local archive_dir = cache_dir .. "/archives"
     local entries = fs.listdir(archive_dir) or {}
     local total, size = 0, 0
@@ -625,7 +625,7 @@ commands.cache = function(args, opts)
 
   elseif subcmd == "autoclean" then
     local db          = config.load_db(cfg) or {packages={}}
-    local archive_dir = (cfg.cache_dir or "/lua/pm/cache") .. "/archives"
+    local archive_dir = (cfg.cache_dir or "/dev/pm/cache") .. "/archives"
     local entries     = fs.listdir(archive_dir) or {}
     local removed, freed = 0, 0
     for _, name in ipairs(entries) do
@@ -657,7 +657,7 @@ end
 
 commands.source = function(args, opts)
   local cfg      = config.load()
-  local src_file = (cfg.pm_dir or "/lua/pm") .. "/sources.json"
+  local src_file = (cfg.pm_dir or "/dev/pm") .. "/sources.json"
   local subcmd   = args[1]
   table.remove(args, 1)
 
@@ -765,9 +765,9 @@ Common options:
   --autoremove            Remove unneeded dependencies after remove
 
 Packages are installed to:
-  Modules → /lua/packages/<name>/   (require("packages.<name>"))
-  Scripts → /lua/bin/<name>.lua
-  Data    → /lua/share/<name>/
+  Modules → /packages/<name>/   (require("packages.<name>"))
+  Scripts → /bin/<name>.lua
+  Data    → /share/<name>/
 
 Examples:
   pm install luasocket

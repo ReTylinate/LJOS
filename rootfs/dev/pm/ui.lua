@@ -1,7 +1,7 @@
 -- Terminal UI for ljpm on LJOS
 -- Pure LuaJIT — no FFI, no ncurses.
 -- Color support is detected from TERM env var.
--- Lives at /lua/pm/ui.lua
+-- Lives at /dev/pm/ui.lua
 
 local ui = {}
 
