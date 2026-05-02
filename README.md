@@ -11,3 +11,4 @@ Goal:
 - graphical environment built on SDL2
 
 everything that doesn't NEED to be C will eventually be LuaJIT.
+Not For Use In California, Apparently(NFUICA).
