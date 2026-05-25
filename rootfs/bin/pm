@@ -1,4 +1,4 @@
-#!/usr/bin/env luajit
+#!/bin/luajit
 -- ljpm standalone entry point for LJOS
 -- Located at /boot/bin/pm.lua
 -- Can be run directly: luajit /boot/bin/pm.lua install <pkg>
@@ -8,4 +8,5 @@
 package.path = "/boot/?.lua;/boot/?/init.lua;/packages/?.lua;/packages/?/init.lua;" .. package.path
 
 local pm = require("system.pm")
-pm.main(arg)
+local ok = pm.main(arg)
+if ok == false then os.exit(1) end

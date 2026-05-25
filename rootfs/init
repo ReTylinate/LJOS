@@ -1,8 +1,33 @@
 #!/bin/sh
 echo "starting LuaOS"
 
+# Setup basic directories
+mkdir -p /proc /sys /dev /etc /var/run /tmp
+
+# Mount filesystems
+echo "mounting virtual filesystems..."
+mount -t devtmpfs none /dev
 mount -t proc none /proc
 mount -t sysfs none /sys
-mount -t devtmpfs none /dev
 
+# Populate devices
+mdev -s
+
+# Debugging
+echo "Checking mounts:"
+mount | grep -E '/proc|/sys|/dev'
+
+echo -n "Checking framebuffer: "
+if [ -d /sys/class/graphics ]; then
+    ls /sys/class/graphics
+    if [ -e /proc/fb ]; then
+        cat /proc/fb
+    else
+        echo "no /proc/fb"
+    fi
+else
+    echo "no /sys/class/graphics (Did sysfs mount?)"
+fi
+
+echo "starting boot.lua..."
 exec /bin/luajit /boot/boot.lua

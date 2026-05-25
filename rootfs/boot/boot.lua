@@ -18,6 +18,7 @@ local function get_pm()
   return _pm_loaded
 end
 
+local function extended_shell()
   print("[LuaOS] shell ready")
 
   local cwd = "/"
@@ -40,7 +41,7 @@ end
     local cmd = words[1]
 
     if not cmd then
-
+      -- Skip empty input
     elseif cmd == "pm" or cmd == "ljpm" then
       local pm = get_pm()
       if pm then
@@ -51,8 +52,10 @@ end
       end
 
     elseif cmd == "cd" then
-      cwd = resolve(words[2] or "/")
-      core.cd(words[2] or "/")
+      local target = resolve(words[2] or "/")
+      if core.cd(target) then
+        cwd = target
+      end
 
     elseif cmd == "ls"    then core.ls(resolve(words[2]))
     elseif cmd == "pwd"   then print(cwd)
@@ -70,7 +73,6 @@ end
       core.write(resolve(words[2]), table.concat(parts, " "))
 
     elseif cmd == "luajit" or cmd == "lua" then
-
       if words[2] then
         local path = resolve(words[2])
         local exec_args = {}
@@ -106,7 +108,6 @@ LJOS Shell Commands:
 ]])
 
     else
-
       local bin_path = "/boot/bin/" .. cmd .. ".lua"
       local f = io.open(bin_path, "r")
       if f then

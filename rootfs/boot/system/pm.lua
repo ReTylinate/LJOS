@@ -818,13 +818,13 @@ function pm.main(raw_args)
   -- Print version
   if opts.version then
     io.write("ljpm "..pm.VERSION.." — LuaJIT Package Manager for LJOS\n")
-    return
+    return true
   end
 
   -- Default to help
   if not cmd_name then
     commands.help({}, opts)
-    return
+    return true
   end
 
   -- Resolve alias
@@ -833,11 +833,10 @@ function pm.main(raw_args)
 
   if not fn then
     ui.error("Unknown command: '"..cmd_name.."'. Run 'pm help' for usage.")
-    os.exit(1)
+    return false
   end
 
-  local ok = fn(all_args, opts)
-  if ok == false then os.exit(1) end
+  return fn(all_args, opts)
 end
 
 -- ─── Shell Integration ────────────────────────────────────────────────────────

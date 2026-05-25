@@ -46,7 +46,7 @@ local _width = nil
 function ui.width()
   if _width then return _width end
   -- Try reading from stty (busybox has stty)
-  local p = io.popen("stty size 2>/boot/null")
+  local p = io.popen("stty size 2>/dev/null")
   if p then
     local out = p:read("*l")
     p:close()

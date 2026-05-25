@@ -33,10 +33,10 @@ local function extract_archive(archive_path, dest_dir)
 
   local cmd
   if archive_path:match("%.tar%.gz$") or archive_path:match("%.tgz$") then
-    cmd = string.format("tar -xzf %s -C %s 2>/boot/null",
+    cmd = string.format("tar -xzf %s -C %s 2>/dev/null",
       fs.quote(archive_path), fs.quote(dest_dir))
   elseif archive_path:match("%.tar$") then
-    cmd = string.format("tar -xf %s -C %s 2>/boot/null",
+    cmd = string.format("tar -xf %s -C %s 2>/dev/null",
       fs.quote(archive_path), fs.quote(dest_dir))
   else
     return false, "Unknown archive format: "..archive_path
@@ -134,15 +134,19 @@ function installer.install(manifest, cfg, db, opts)
     pkg_dest = paths.packages_dir .. "/" .. name
   end
 
-  -- Remove old version if reinstalling
+  -- Backup old version instead of immediate deletion
+  local backup_dest = pkg_dest .. ".old"
   if fs.isdir(pkg_dest) then
-    ui.debug("  Removing old version at "..pkg_dest)
-    fs.rmrf(pkg_dest)
+    ui.debug("  Backing up old version to " .. backup_dest)
+    fs.rmrf(backup_dest)
+    fs.rename(pkg_dest, backup_dest)
   end
 
   -- Place Lua files → /packages/<name>/
   fs.mkdir(pkg_dest, true)
   local installed_files = {}
+  local success = true
+  local install_err
 
   -- Copy all .lua files from content root (excluding bin/ and share/)
   local entries = fs.listdir(content_root)
@@ -157,17 +161,21 @@ function installer.install(manifest, cfg, db, opts)
             for _, bname in ipairs(bins) do
               local bsrc  = src .. "/" .. bname
               local bdst  = paths.bin_dir .. "/" .. bname
-              fs.copy(bsrc, bdst)
-              os.execute("chmod +x "..fs.quote(bdst).." 2>/boot/null")
+              if not fs.copy(bsrc, bdst) then
+                success = false; install_err = "Failed to copy binary " .. bname; break
+              end
+              os.execute("chmod +x "..fs.quote(bdst).." 2>/dev/null")
               installed_files[#installed_files+1] = bdst
             end
           end
         end
       elseif entry == "share" then
-        -- Data → /boot/share/<name>/
+        -- Data → /share/<name>/
         if fs.isdir(src) then
           local sdst = paths.share_dir .. "/" .. name
-          fs.copydir(src, sdst)
+          if not fs.copydir(src, sdst) then
+            success = false; install_err = "Failed to copy share data"; break
+          end
           installed_files[#installed_files+1] = sdst
         end
       elseif entry == "package.json" then
@@ -175,15 +183,36 @@ function installer.install(manifest, cfg, db, opts)
       else
         -- Lua modules → /packages/<name>/
         local dst = pkg_dest .. "/" .. entry
+        local ok2
         if fs.isdir(src) then
-          fs.copydir(src, dst)
+          ok2 = fs.copydir(src, dst)
         else
-          fs.copy(src, dst)
+          ok2 = fs.copy(src, dst)
+        end
+        if not ok2 then
+          success = false; install_err = "Failed to copy module file " .. entry; break
         end
         installed_files[#installed_files+1] = dst
       end
+      if not success then break end
     end
   end
+
+  -- If installation failed, rollback
+  if not success then
+    ui.error("Installation failed: " .. (install_err or "unknown error"))
+    ui.info("Rolling back...")
+    fs.rmrf(pkg_dest)
+    if fs.isdir(backup_dest) then
+      fs.rename(backup_dest, pkg_dest)
+      ui.info("Restored old version.")
+    end
+    fs.rmrf(extract_tmp)
+    return false, install_err
+  end
+
+  -- Success: remove backup
+  fs.rmrf(backup_dest)
 
   -- Clean up extract temp
   fs.rmrf(extract_tmp)

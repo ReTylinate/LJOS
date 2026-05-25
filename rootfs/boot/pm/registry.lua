@@ -1,5 +1,5 @@
 -- Registry client for ljpm on LJOS
--- Lives at /lua/pm/registry.lua
+-- Lives at /boot/pm/registry.lua
 --
 -- Registry index format (JSON):
 -- {
@@ -18,7 +18,7 @@
 --   }
 -- }
 --
--- Index is cached at /lua/pm/cache/index.json for 24 hours.
+-- Index is cached at /boot/pm/cache/index.json for 24 hours.
 
 local json    = require("pm.json")
 local fs      = require("pm.fs")
@@ -33,11 +33,11 @@ local CACHE_TTL = 86400  -- 24 hours
 -- ─── Index Cache ─────────────────────────────────────────────────────────────
 
 function registry.cache_path(cfg)
-  return (cfg and cfg.cache_dir or "/lua/pm/cache") .. "/index.json"
+  return (cfg and cfg.cache_dir or "/boot/pm/cache") .. "/index.json"
 end
 
 function registry.cache_mtime_path(cfg)
-  return (cfg and cfg.cache_dir or "/lua/pm/cache") .. "/index.mtime"
+  return (cfg and cfg.cache_dir or "/boot/pm/cache") .. "/index.mtime"
 end
 
 function registry.load_cache(cfg)
@@ -74,7 +74,7 @@ end
 
 function registry.fetch_index(cfg, opts)
   opts = opts or {}
-  local url = (cfg and cfg.registry_url) or "/lua/pm/cache/index.json"
+  local url = (cfg and cfg.registry_url) or "/boot/pm/cache/index.json"
 
   -- Return cached if not forced
   if not opts.force then
@@ -193,7 +193,7 @@ function registry.download(cfg, manifest, dest_path)
   if not ok then return false, "Download failed: "..tostring(err) end
 
   -- Verify checksum
-  if manifest.checksum then
+  if manifest.checksum and manifest.checksum ~= "" then
     local got = fs.sha256(tmp)
     if got and got ~= manifest.checksum then
       fs.remove(tmp)

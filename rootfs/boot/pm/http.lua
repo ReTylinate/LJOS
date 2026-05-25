@@ -151,14 +151,21 @@ end
 local function wget_get(url, out_file)
   local cmd
   if out_file then
-    cmd = string.format("wget -q -O %s %s 2>&1", fs_quote(out_file), fs_quote(url))
+    cmd = string.format("wget -q -O %s %s 2>/dev/null", fs_quote(out_file), fs_quote(url))
   else
-    cmd = string.format("wget -q -O - %s 2>&1", fs_quote(url))
+    cmd = string.format("wget -q -O - %s 2>/dev/null", fs_quote(url))
   end
   local p = io.popen(cmd, "r")
   if not p then return nil, "Cannot run wget" end
   local out = p:read("*a")
-  local ok  = p:close()
+  local ok = p:close()
+  -- ok is exit code in Lua 5.1/LuaJIT, or true/nil, "exit", code in 5.2+
+  local exit_ok = (ok == true or ok == 0)
+
+  if not exit_ok then
+    return nil, "wget failed with exit code " .. tostring(ok or "unknown")
+  end
+
   if out_file then
     return {status=200, body="", headers={}}
   end
@@ -183,7 +190,7 @@ function http.get(url, opts)
 
     local resp, err
     if u.scheme == "https" then
-      -- HTTPS: use wget (has TLS via busybox; fallback to curl)
+      -- HTTPS: use wget
       resp, err = wget_get(url)
     else
       resp, err = tcp_get(u.host, u.port, u.path, opts.timeout)
@@ -211,26 +218,40 @@ end
 -- Download a URL directly to a file path.
 function http.download(url, dest_path, progress_cb)
   local u = http.parse_url(url)
-  -- For anything that needs to go to disk, wget is more reliable
-  -- (avoids loading entire archive into Lua string)
+  -- Try wget with --show-progress first
   local cmd = string.format(
-    "wget -q --show-progress -O %s %s 2>&1",
+    "wget -q --show-progress -O %s %s 2>/dev/null",
     fs_quote(dest_path), fs_quote(url)
   )
   local ok = os.execute(cmd)
+  
+  if ok ~= 0 then
+    -- Try without --show-progress (Busybox wget often doesn't have it)
+    cmd = string.format(
+      "wget -q -O %s %s 2>/dev/null",
+      fs_quote(dest_path), fs_quote(url)
+    )
+    ok = os.execute(cmd)
+  end
+
   if ok == 0 then
     return true
   end
-  -- wget not available? try HTTP GET into string and write manually
-  local resp, err = http.get(url)
-  if not resp then return false, err end
-  if resp.status ~= 200 then return false, "HTTP "..resp.status end
-  -- Write body to file
-  local f, ferr = io.open(dest_path, "wb")
-  if not f then return false, "Cannot write "..dest_path..": "..(ferr or "") end
-  f:write(resp.body)
-  f:close()
-  return true
+
+  -- wget failed or not available? try HTTP GET (only for plain HTTP)
+  if u.scheme == "http" then
+    local resp, err = http.get(url)
+    if not resp then return false, err end
+    if resp.status ~= 200 then return false, "HTTP "..resp.status end
+    -- Write body to file
+    local f, ferr = io.open(dest_path, "wb")
+    if not f then return false, "Cannot write "..dest_path..": "..(ferr or "") end
+    f:write(resp.body)
+    f:close()
+    return true
+  end
+
+  return false, "Download failed (wget exit code "..tostring(ok)..")"
 end
 
 return http
